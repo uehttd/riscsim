@@ -34,5 +34,8 @@ enum exec_command_status
 };
 
 int exec_command(int32_t* x, int32_t* mem, int32_t* pc);
+int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
+int decode_R_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc);
+int decode_I_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc);
 
 #endif //RISCSIM_INST_DECODE_H

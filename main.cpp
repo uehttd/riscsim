@@ -7,16 +7,16 @@ int32_t mem[16000]; //code memory model. TODO:this may require change accroding 
 int32_t pc; //program counter
 
 
-void load_code(char* filename);
+//void load_code(char* filename);
 
 
 int main(int argc, char** argv) {
-    load_code(argv[1]);
-    while (1) {
-        int op_status = exec_command(int32_t* x, int32_t* mem,  int32_t* pc);
-        if (op_status == EXEC_EXIT)
-            break;
-    }
+//    load_code(argv[1]);
+//    while (1) {
+//        int op_status = exec_command(int32_t* x, int32_t* mem,  int32_t* pc);
+//        if (op_status == EXEC_EXIT)
+//            break;
+//    }
     return 0;
 }
 
