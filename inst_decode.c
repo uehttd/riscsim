@@ -61,20 +61,18 @@ int decode_R_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc) {
     int rd     = slice(inst,  7, 5);
     int rs1    = slice(inst, 15, 5);
     int rs2    = slice(inst, 20, 5);
-//    if (funct3 == ADD && funct7 == 0) {
-//        add_op(x[rs1], x[rs2], (x + rd), pc);
-//        return EXEC_OK;
-//    }
-    //TODO
+
+    decode_arithm_op(funct3, funct7, rs1, rs2, &rd, pc);
 }
 
 int decode_I_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc) {
     int funct3 = slice(inst, 12,  3);
+    int funct7 = slice(inst, 25, 7);
     int imm    = i_imm(inst);
     int rs1    = slice(inst, 15,  5);
     int rd     = slice(inst,  7,  5);
 
-    //TODO
+    decode_arithm_op(funct3, funct7, rs1, imm, &rd, pc);
 }
 
 int exec_command(int32_t* x, int32_t* mem, int32_t* pc) {
