@@ -9,9 +9,14 @@
 
 
 #define slice(val, lsb, len) (((val) >> (lsb)) & ((1 << (len)) - 1))
+#define ones_or_zeroes(bit, len) (((bit) << (len)) - (bit))
 #define i_imm(inst) (slice(inst, 20, 1) \
-                | (((slice(inst, 31, 1) << 21) - slice(inst, 31, 1)) << 11))
-
+                    | (ones_or_zeroes(slice(inst, 31, 1), 21) << 11))
+#define s_imm(inst) (slice(inst, 7, 5) | (slice(inst, 25, 6) << 5) | (ones_or_zeroes(slice(inst, 31, 1), 21) << 11))
+#define j_imm(inst) ((slice(inst, 21, 10) << 1) | (slice(inst, 20, 1) << 11) \
+                    | (slice(inst, 12, 8) << 12) | (ones_or_zeroes((inst, 31, 1), 12)))
+#define b_imm(inst) ((slice(inst, 8, 4) << 1) | (slice(inst, 25, 6) << 5) \
+                    | (slice(inst, 7, 1) << 11) | (ones_or_zeroes(slice(inst, 31, 1), 20) << 12))
 int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc) {
     switch (funct3) {
         case ADD:
@@ -53,6 +58,42 @@ int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, i
         default:
             return EXEC_EXIT;
     }
+}
+
+int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+{
+    switch (funct3)
+    {
+        case BEQ:
+            beq_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        case BNE:
+            bne_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        case BLT:
+            blt_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        case BLTU:
+            bltu_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        case BGE:
+            bge_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        case BGEU:
+            bgeu_op(offset, op1, op2, pc);
+            return EXEC_OK;
+        default:
+            return EXEC_EXIT;
+    }
+}
+
+int decode_B_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc)
+{
+    int funct3 = slice(inst, 12, 3);
+    int imm    = b_imm(inst);
+    int rs1    = slice(inst, 15, 5);
+    int rs2    = slice(inst, 20, 5);
+    return decode_branch_op(funct3, imm, x[rs1], x[rs2], pc);
 }
 
 int decode_R_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc) {

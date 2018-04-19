@@ -6,8 +6,11 @@
 #define RISCSIM_INST_DECODE_H
 
 enum opcode_e {
-    OP = 0x33,
-    OP_IMM = 0x23
+    OP     = 0x33,
+    OP_IMM = 0x23,
+    JAL    = 0x6F,
+    JALR   = 0x67,
+    BRANCH = 0x63
 };
 
 enum funct3_e {
@@ -20,7 +23,14 @@ enum funct3_e {
     SRL  = 0x5,
     SRA  = 0x5,
     OR   = 0x6,
-    AND  = 0x7
+    AND  = 0x7,
+
+    BEQ  = 0x0,
+    BNE  = 0x1,
+    BLT  = 0x4,
+    BGE  = 0x5,
+    BLTU = 0x6,
+    BGEU = 0x7
 };
 
 enum funct7_e {
