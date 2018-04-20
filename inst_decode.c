@@ -87,7 +87,49 @@ int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, i
     }
 }
 
-int decode_B_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc)
+int decode_load_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    switch (funct3)
+    {
+        case LB:
+            lb_op(offset, base, mem, rd, pc);
+            return EXEC_OK;
+        case LH:
+            lh_op(offset, base, mem, rd, pc);
+            return EXEC_OK;
+        case LW:
+            lw_op(offset, base, mem, rd, pc);
+            return EXEC_OK;
+        case LBU:
+            lbu_op(offset, base, mem, rd, pc);
+            return EXEC_OK;
+        case LHU:
+            lhu_op(offset, base, mem, rd, pc);
+            return EXEC_OK;
+        default:
+            return EXEC_EXIT;
+    }
+}
+
+int decode_store_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc)
+{
+    switch (funct3)
+    {
+        case SB:
+            sb_op(offset, base, mem, val, pc);
+            return EXEC_OK;
+        case SH:
+            sh_op(offset, base, mem, val, pc);
+            return EXEC_OK;
+        case SW:
+            sw_op(offset, base, mem, val, pc);
+            return EXEC_OK;
+        default:
+            return EXEC_EXIT;
+    }
+}
+
+int decode_B_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
 {
     int funct3 = slice(inst, 12, 3);
     int imm    = b_imm(inst);
@@ -96,30 +138,91 @@ int decode_B_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc)
     return decode_branch_op(funct3, imm, x[rs1], x[rs2], pc);
 }
 
-int decode_R_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc) {
+int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+{
     int funct3 = slice(inst, 12, 3);
     int funct7 = slice(inst, 25, 7);
     int rd     = slice(inst,  7, 5);
     int rs1    = slice(inst, 15, 5);
     int rs2    = slice(inst, 20, 5);
 
-    decode_arithm_op(funct3, funct7, rs1, rs2, &rd, pc);
+    return decode_arithm_op(funct3, funct7, x[rs1], x[rs2], (x + rd), pc);
 }
 
-int decode_I_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc) {
+int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+{
+    int opcode = slice(inst, 0, 7);
     int funct3 = slice(inst, 12,  3);
     int funct7 = slice(inst, 25, 7);
     int imm    = i_imm(inst);
     int rs1    = slice(inst, 15,  5);
     int rd     = slice(inst,  7,  5);
 
-    decode_arithm_op(funct3, funct7, rs1, imm, &rd, pc);
+    switch (opcode)
+    {
+        case OP_IMM:
+            return decode_arithm_op(funct3, funct7, x[rs1], imm, (x + rd), pc);
+        case JALR:
+            if (funct3 == 0) {
+                jalr_op(imm, x[rs1], (x + rd), pc);
+                return EXEC_OK;
+            }
+            else
+                return EXEC_EXIT;
+        case LOAD:
+            return decode_load_op(funct3, imm, x[rs1], mem, (x + rd), pc);
+        default:
+            return EXEC_EXIT;
+    }
 }
 
-int exec_command(int32_t* x, int32_t* mem, int32_t* pc) {
-    int32_t inst = mem[*pc];
+int decode_S_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+{
+    int funct3 = slice(inst, 12, 3);
+    int imm    = s_imm(inst);
+    int rs1    = slice(inst, 15, 5);
+    int rs2    = slice(inst, 20, 5);
+
+    return decode_store_op(funct3, imm, x[rs1], mem, x[rs2], pc);
+}
+
+int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+{
+    int rd = slice(inst, 7, 5);
+    int imm = j_imm(inst);
+
+    jal_op(imm, (x + rd), pc);
+
+    return EXEC_OK;
+}
+
+int exec_command(int32_t* x, char* mem, int32_t* pc) {
+    int32_t inst = *((int32_t*)(mem + *pc));
     int opcode = slice(inst, 0, 7);
     int ret_status = EXEC_EXIT;
+    switch (opcode)
+    {
+        case OP:
+            ret_status = decode_R_type(inst, x, mem, pc);
+            break;
+        case OP_IMM:
+        case LOAD:
+        case JALR:
+            ret_status = decode_I_type(inst, x, mem, pc);
+            break;
+        case BRANCH:
+            ret_status = decode_B_type(inst, x, mem, pc);
+            break;
+        case JAL:
+            ret_status = decode_J_type(inst, x, mem, pc);
+            break;
+        case STORE:
+            ret_status = decode_S_type(inst, x, mem, pc);
+            break;
+        default:
+            return EXEC_EXIT;
+
+    }
     if (opcode == OP) {
         ret_status = decode_R_type(inst, x, mem, pc);
     }

@@ -7,10 +7,12 @@
 
 enum opcode_e {
     OP     = 0x33,
-    OP_IMM = 0x23,
+    OP_IMM = 0x13,
     JAL    = 0x6F,
     JALR   = 0x67,
-    BRANCH = 0x63
+    BRANCH = 0x63,
+    LOAD   = 0x03,
+    STORE  = 0x23
 };
 
 enum funct3_e {
@@ -30,7 +32,17 @@ enum funct3_e {
     BLT  = 0x4,
     BGE  = 0x5,
     BLTU = 0x6,
-    BGEU = 0x7
+    BGEU = 0x7,
+
+    LB   = 0x0,
+    LH   = 0x1,
+    LW   = 0x2,
+    LBU  = 0x4,
+    LHU  = 0x5,
+
+    SB   = 0x0,
+    SH   = 0x1,
+    SW   = 0x2
 };
 
 enum funct7_e {
@@ -43,9 +55,16 @@ enum exec_command_status
     EXEC_EXIT
 };
 
-int exec_command(int32_t* x, int32_t* mem, int32_t* pc);
+int exec_command(int32_t* x, char* mem, int32_t* pc);
 int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
-int decode_R_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc);
-int decode_I_type(int32_t inst, int32_t* x, int32_t* mem, int32_t* pc);
+int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t* pc);
+int decode_load_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc);
+int decode_store_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc);
+
+int decode_B_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+int decode_S_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
 
 #endif //RISCSIM_INST_DECODE_H

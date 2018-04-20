@@ -7,61 +7,61 @@
 
 //******************** ARITHMETIC OPERATIONS ********************
 //TODO ensure of the right increments of pc value
-void  add_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void  add_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 + op2;
     *pc += 4; //+4 bits since pc is pointer to int32_t
 }
 
-void sub_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void sub_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 - op2;
     *pc += 4;
 }
 
-void slt_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void slt_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = (op1 < op2) ? 1 : 0;
     *pc += 4;
 }
 
-void sltu_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void sltu_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = ((uint32_t)op1 < (uint32_t)op2) ? 1 : 0;
     *pc += 4;
 }
 
-void xor_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void xor_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 ^ op2;
     *pc += 4;
 }
 
-void sll_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void sll_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 << (op2 & 0x1F);
     *pc += 4;
 }
 
-void srl_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void srl_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = (uint32_t)op1 >> (op2 & 0x1F);
     *pc += 4;
 }
 
-void sra_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void sra_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 >> (op2 & 0x1F);
     *pc += 4;
 }
 
-void or_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void or_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 | op2;
     *pc += 4;
 }
 
-void and_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+inline void and_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 & op2;
     *pc += 4;
@@ -69,45 +69,100 @@ void and_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 
 //******************** UNCONDITIONAL JUMPS ********************
 
-void jal_op(int32_t offset, int32_t *rd, int32_t *pc)
+inline void jal_op(int32_t offset, int32_t *rd, int32_t *pc)
 {
     *rd = *pc + 4;
     *pc += offset;
 }
 
-void jalr_op(int32_t offset, int32_t base, int32_t* rd, int32_t* pc)
+inline void jalr_op(int32_t offset, int32_t base, int32_t* rd, int32_t* pc)
 {
     *rd = *pc + 4;
     *pc += (offset + base) & (0xFFFE);
 }
 
-void beq_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+//*************************** BRANCH ***************************
+
+inline void beq_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += (op1 == op2) ? offset : 4;
 }
 
-void bne_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+inline void bne_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += (op1 != op2) ? offset : 4;
 }
 
-void blt_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+inline void blt_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += (op1 < op2) ? offset : 4;
 }
 
-void bltu_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+inline void bltu_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += ((uint32_t)op1 < (uint32_t)op2) ? offset : 4;
 }
 
-void bge_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+inline void bge_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += (op1 >= op2) ? offset : 4;
 }
 
-void bgeu_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+inline void bgeu_op(int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
 {
     *pc += ((uint32_t)op1 >= (uint32_t)op2) ? offset : 4;
 }
 
+//************************ LOAD AND STORE ***********************
+
+inline void   lw_op(int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    *rd = *((int32_t*)(mem + base + offset));
+    *pc += 4;
+}
+
+inline void   lh_op(int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    *rd = *((int32_t*)(mem + base + offset)) & 0x0000FFFF;
+    if ((*rd >> 15) & 0x00000001)
+        *rd = *rd | 0xFFFF0000;
+    *pc += 4;
+}
+
+inline void   lb_op(int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    *rd = *((int32_t*)(mem + base + offset)) & 0x000000FF;
+    if ((*rd >> 7) & 0x00000001)
+        *rd = *rd | 0xFFFFFF00;
+    *pc += 4;
+}
+
+inline void  lhu_op(int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    *rd = *((int32_t*)(mem + base + offset)) & 0x0000FFFF;
+    *pc += 4;
+}
+
+inline void  lbu_op(int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+{
+    *rd = *((int32_t*)(mem + base + offset)) & 0x000000FF;
+    *pc += 4;
+}
+
+inline void   sw_op(int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc)
+{
+    *((int32_t*)(mem + base + offset)) = val;
+    *pc += 4;
+}
+
+inline void   sh_op(int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc)
+{
+    *((int16_t*)(mem + base + offset)) = val & 0x0000FFFF;
+    *pc += 4;
+}
+
+inline void   sb_op(int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc)
+{
+    *((int8_t*)(mem + base + offset)) = val & 0x000000FF;
+    *pc += 4;
+}
