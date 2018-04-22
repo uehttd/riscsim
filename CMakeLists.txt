@@ -3,6 +3,12 @@ project(riscsim)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_CXX_FLAGS "-g -fprofile-arcs -ftest-coverage -O0 -Wall ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+
+add_definitions(--coverage)
+set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} " --coverage")
+
 if (LIBELF_LIBRARIES AND LIBELF_INCLUDE_DIRS)
     set (LibElf_FIND_QUIETLY TRUE)
 endif (LIBELF_LIBRARIES AND LIBELF_INCLUDE_DIRS)

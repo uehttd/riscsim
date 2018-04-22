@@ -6,8 +6,6 @@
 
 extern inline void  add_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
 
-extern inline void sub_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
-
 extern inline void slt_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
 
 extern inline void sltu_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);

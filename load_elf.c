@@ -181,7 +181,7 @@ load_code (int argc, char **argv) {
         fread((mem + phdr.p_vaddr), sizeof(*mem), phdr.p_filesz, f);
         fsetpos(f, &curr_pos);
     }
-    print_mem(log);
+    //print_mem(log);
     (void) elf_end(e);
     (void) close(fd);
     fclose(log);

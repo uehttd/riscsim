@@ -1,11 +1,33 @@
+#include <stdio.h>
+
+int fib(int n)
+{
+  return (n == 1) ? 1 : (n == 0) ? 0 : fib(n-1) + fib(n-2);
+}
+
 int main()
 {
-  int a;
-  int b;
+  int i, sum, sum1, sum2;
+  int slt_test;
+  int f;
+  unsigned int op1 = 50, op2 = 101;
 
-  a = 5;
-  b = 10;
-  a = 2 + 5 << 1;
+  f = fib(25);
+  sum1 = 0;
+  for(i = 1; i < 37; i++)
+    sum1 += i;
 
-  return 0;
+  sum1 = sum >> 1;
+  sum1 = sum1 | 333;
+  op1  = op1 < (op2 >> 1);
+
+  slt_test = (sum1 < 100);
+
+  for(i = 36; i >=0; i--)
+    sum2 += i;
+
+  sum = sum1 + sum2 + slt_test;
+  //printf("%d", f);
+  sum += f;
+  return sum;
 }

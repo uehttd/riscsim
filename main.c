@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "inst_decode.h"
 #include "load_elf.h"
@@ -13,6 +14,9 @@ int main(int argc, char** argv)
 {
     for(int i = 0; i < 32; i++)
         x[i] = 0;
+
+    x[2] = 134217720; //init stack pointer
+
     if (load_code(argc, argv) != EXIT_SUCCESS)
         return EXIT_FAILURE;
     while (1)
@@ -21,7 +25,9 @@ int main(int argc, char** argv)
         if (op_status == EXEC_EXIT)
             break;
     }
-    return x[1];
+
+    printf("program returned: %d\n", x[10]);
+    return 0;
 }
 
 
