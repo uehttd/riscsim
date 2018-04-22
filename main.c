@@ -11,6 +11,8 @@ int32_t pc; //program counter
 
 int main(int argc, char** argv)
 {
+    for(int i = 0; i < 32; i++)
+        x[i] = 0;
     if (load_code(argc, argv) != EXIT_SUCCESS)
         return EXIT_FAILURE;
     while (1)
@@ -19,7 +21,7 @@ int main(int argc, char** argv)
         if (op_status == EXEC_EXIT)
             break;
     }
-
+    return x[1];
 }
 
 

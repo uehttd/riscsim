@@ -10,11 +10,11 @@
 
 #define slice(val, lsb, len) (((val) >> (lsb)) & ((1 << (len)) - 1))
 #define ones_or_zeroes(bit, len) (((bit) << (len)) - (bit))
-#define i_imm(inst) (slice(inst, 20, 1) \
+#define i_imm(inst) (slice(inst, 20, 11) \
                     | (ones_or_zeroes(slice(inst, 31, 1), 21) << 11))
 #define s_imm(inst) (slice(inst, 7, 5) | (slice(inst, 25, 6) << 5) | (ones_or_zeroes(slice(inst, 31, 1), 21) << 11))
-#define j_imm(inst) ((slice(inst, 21, 10) << 1) | (slice(inst, 20, 1) << 11) \
-                    | (slice(inst, 12, 8) << 12) | (ones_or_zeroes((inst, 31, 1), 12)))
+#define j_imm(inst) ((slice(inst, 21, 10) << 1) | (slice(inst, 20, 1) << 11) | (slice(inst, 12, 8) << 12) \
+                    | (ones_or_zeroes(slice(inst, 31, 1), 12) << 20))
 #define b_imm(inst) ((slice(inst, 8, 4) << 1) | (slice(inst, 25, 6) << 5) \
                     | (slice(inst, 7, 1) << 11) | (ones_or_zeroes(slice(inst, 31, 1), 20) << 12))
 #define u_imm(inst) ((slice(inst, 12, 8) << 12) | (slice(inst, 20, 11) << 20) | (slice(inst, 31, 1) << 31))
@@ -149,7 +149,11 @@ int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
     int rs1    = slice(inst, 15, 5);
     int rs2    = slice(inst, 20, 5);
 
-    return decode_arithm_op(funct3, funct7, x[rs1], x[rs2], (x + rd), pc);
+
+    if (funct3 == SUB && funct7 == 0x20)
+        return decode_arithm_op(ADD,    funct7, x[rs1], -x[rs2], (x + rd), pc);
+    else
+        return decode_arithm_op(funct3, funct7, x[rs1],  x[rs2], (x + rd), pc);
 }
 
 int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
@@ -218,9 +222,9 @@ int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
 }
 
 int exec_command(int32_t* x, char* mem, int32_t* pc) {
-    int32_t inst = *((int32_t*)(mem + *pc));
+    int32_t inst = *(int32_t*)(mem + *pc);
     int opcode = slice(inst, 0, 7);
-    int ret_status = EXEC_EXIT;
+    int ret_status;
     switch (opcode)
     {
         case OP:
@@ -248,7 +252,7 @@ int exec_command(int32_t* x, char* mem, int32_t* pc) {
             return EXEC_EXIT;
 
     }
-
+    x[0] = 0;
     return ret_status;
 }
 

@@ -91,7 +91,7 @@ inline void jal_op(int32_t offset, int32_t *rd, int32_t *pc)
 inline void jalr_op(int32_t offset, int32_t base, int32_t* rd, int32_t* pc)
 {
     *rd = *pc + 4;
-    *pc += (offset + base) & (0xFFFE);
+    *pc = (offset + base) & (0xFFFFFFFE);
 }
 
 //*************************** BRANCH ***************************
