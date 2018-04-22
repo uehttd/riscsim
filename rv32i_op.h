@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 //******************** ARITHMETIC OPERATIONS ********************
-//TODO ensure of the right increments of pc value
+
 inline void  add_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
 {
     *rd = op1 + op2;
@@ -69,6 +69,17 @@ inline void and_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
     *pc += 4;
 }
 
+inline void lui_op(int32_t imm, int32_t* rd, int32_t* pc)
+{
+    *rd = imm;
+    *pc += 4;
+}
+
+inline void auipc_op(int32_t imm, int32_t* rd, int32_t* pc)
+{
+    *rd = imm + *pc;
+    *pc += 4;
+}
 //******************** UNCONDITIONAL JUMPS ********************
 
 inline void jal_op(int32_t offset, int32_t *rd, int32_t *pc)

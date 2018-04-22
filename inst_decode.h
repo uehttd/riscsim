@@ -12,7 +12,9 @@ enum opcode_e {
     JALR   = 0x67,
     BRANCH = 0x63,
     LOAD   = 0x03,
-    STORE  = 0x23
+    STORE  = 0x23,
+    LUI    = 0x37,
+    AUIPC  = 0x17
 };
 
 enum funct3_e {
@@ -66,5 +68,6 @@ int decode_S_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
 int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
 int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
 int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
 
 #endif //RISCSIM_INST_DECODE_H

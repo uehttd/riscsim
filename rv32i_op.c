@@ -24,6 +24,10 @@ extern inline void or_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
 
 extern inline void and_op(int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
 
+extern inline void lui_op(int32_t imm, int32_t* rd, int32_t* pc);
+
+extern inline void auipc_op(int32_t imm, int32_t* rd, int32_t* pc);
+
 //******************** UNCONDITIONAL JUMPS ********************
 
 extern inline void jal_op(int32_t offset, int32_t *rd, int32_t *pc);

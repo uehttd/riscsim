@@ -17,7 +17,10 @@
                     | (slice(inst, 12, 8) << 12) | (ones_or_zeroes((inst, 31, 1), 12)))
 #define b_imm(inst) ((slice(inst, 8, 4) << 1) | (slice(inst, 25, 6) << 5) \
                     | (slice(inst, 7, 1) << 11) | (ones_or_zeroes(slice(inst, 31, 1), 20) << 12))
-int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc) {
+#define u_imm(inst) ((slice(inst, 12, 8) << 12) | (slice(inst, 20, 11) << 20) | (slice(inst, 31, 1) << 31))
+
+int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+{
     switch (funct3) {
         case ADD:
             add_op(op1, op2, rd, pc);
@@ -196,6 +199,24 @@ int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
     return EXEC_OK;
 }
 
+int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+{
+    int opcode = slice(inst, 0, 7);
+    int rd     = slice(inst, 7, 5);
+    int imm    = u_imm(inst);
+    switch (opcode)
+    {
+        case LUI:
+            lui_op(imm, (x + rd), pc);
+            return EXEC_OK;
+        case AUIPC:
+            auipc_op(imm, (x + rd), pc);
+            return EXEC_OK;
+        default:
+            return EXEC_EXIT;
+    }
+}
+
 int exec_command(int32_t* x, char* mem, int32_t* pc) {
     int32_t inst = *((int32_t*)(mem + *pc));
     int opcode = slice(inst, 0, 7);
@@ -210,6 +231,10 @@ int exec_command(int32_t* x, char* mem, int32_t* pc) {
         case JALR:
             ret_status = decode_I_type(inst, x, mem, pc);
             break;
+        case LUI:
+        case AUIPC:
+            ret_status = decode_U_type(inst, x, mem, pc);
+            break;
         case BRANCH:
             ret_status = decode_B_type(inst, x, mem, pc);
             break;
@@ -222,12 +247,6 @@ int exec_command(int32_t* x, char* mem, int32_t* pc) {
         default:
             return EXEC_EXIT;
 
-    }
-    if (opcode == OP) {
-        ret_status = decode_R_type(inst, x, mem, pc);
-    }
-    else if (opcode == OP_IMM) {
-        ret_status = decode_I_type(inst, x, mem, pc);
     }
 
     return ret_status;
