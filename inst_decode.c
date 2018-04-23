@@ -221,40 +221,50 @@ int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
     }
 }
 
-int load_linear_block(char* mem, int32_t* pc, )
 
-int exec_command(int32_t* x, char* mem, int32_t* pc) {
-    int32_t inst = *(int32_t*)(mem + *pc);
-    int opcode = slice(inst, 0, 7);
-    int ret_status;
-    switch (opcode)
-    {
-        case OP:
-            ret_status = decode_R_type(inst, x, mem, pc);
-            break;
-        case OP_IMM:
-        case LOAD:
-        case JALR:
-            ret_status = decode_I_type(inst, x, mem, pc);
-            break;
-        case LUI:
-        case AUIPC:
-            ret_status = decode_U_type(inst, x, mem, pc);
-            break;
-        case BRANCH:
-            ret_status = decode_B_type(inst, x, mem, pc);
-            break;
-        case JAL:
-            ret_status = decode_J_type(inst, x, mem, pc);
-            break;
-        case STORE:
-            ret_status = decode_S_type(inst, x, mem, pc);
-            break;
-        default:
-            return EXEC_EXIT;
+
+    int exec_command(int32_t* x, char* mem, int32_t* pc, FILE *fptr) {
+        int32_t inst = *(int32_t*)(mem + *pc);
+        int opcode = slice(inst, 0, 7);
+        int rd     = slice(inst, 7, 5);
+        int ret_status;
+
+
+        fprintf(fptr, " %d         ", opcode);
+
+        switch (opcode)
+        {
+            case OP:
+                ret_status = decode_R_type(inst, x, mem, pc);
+                fprintf(fptr, "%d             %d\n", rd, *pc);
+                break;
+            case OP_IMM:
+            case LOAD:
+            case JALR:
+                ret_status = decode_I_type(inst, x, mem, pc);
+                fprintf(fptr, "%d             %d\n", rd, *pc);
+                break;
+            case LUI:
+            case AUIPC:
+                ret_status = decode_U_type(inst, x, mem, pc);
+                fprintf(fptr, "%d             %d\n", rd, *pc);
+                break;
+            case BRANCH:
+                ret_status = decode_B_type(inst, x, mem, pc);
+                fprintf(fptr, "---             %d\n", *pc);
+                break;
+            case JAL:
+                ret_status = decode_J_type(inst, x, mem, pc);
+                fprintf(fptr, "%d             %d\n", rd, *pc);
+                break;
+            case STORE:
+                ret_status = decode_S_type(inst, x, mem, pc);
+                fprintf(fptr, "---             %d\n", *pc);
+                break;
+            default:
+                return EXEC_EXIT;
 
     }
     x[0] = 0;
     return ret_status;
 }
-
