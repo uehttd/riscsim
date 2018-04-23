@@ -1,4 +1,4 @@
-#include <stdio.h>
+//#include <stdio.h>
 
 int fib(int n)
 {
@@ -25,6 +25,8 @@ int main()
 
   for(i = 36; i >=0; i--)
     sum2 += i;
+
+  sum2 = sum2 >> 1;
 
   sum = sum1 + sum2 + slt_test;
   //printf("%d", f);

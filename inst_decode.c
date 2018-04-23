@@ -221,6 +221,8 @@ int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
     }
 }
 
+int load_linear_block(char* mem, int32_t* pc, )
+
 int exec_command(int32_t* x, char* mem, int32_t* pc) {
     int32_t inst = *(int32_t*)(mem + *pc);
     int opcode = slice(inst, 0, 7);

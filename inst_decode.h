@@ -57,6 +57,11 @@ enum exec_command_status
     EXEC_EXIT
 };
 
+typedef struct {
+    int n_inst;
+    int32_t
+} linear_command_block;
+
 int exec_command(int32_t* x, char* mem, int32_t* pc);
 int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
 int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t* pc);

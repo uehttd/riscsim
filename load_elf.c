@@ -52,7 +52,6 @@ void print_mem(FILE* logq);
 int
 load_code (int argc, char **argv) {
     int i, fd;
-    FILE* f;
     FILE* log;
     Elf *e;
     char *id, bytes[5];
@@ -69,9 +68,6 @@ load_code (int argc, char **argv) {
                 "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
-        err(EXIT_FAILURE, "open \"%s\" failed", argv[1]);
-
-    if (!(f = fopen(argv[1], "r")))
         err(EXIT_FAILURE, "open \"%s\" failed", argv[1]);
 
     if (!(log = fopen("elf.log", "w")))
@@ -175,17 +171,15 @@ load_code (int argc, char **argv) {
         PRINT_FIELD(p_align);
         NL();
 
-        fpos_t curr_pos;
-        fgetpos(f, &curr_pos);
-        fseek(f, phdr.p_offset % phdr.p_align, SEEK_SET);
-        fread((mem + phdr.p_vaddr), sizeof(*mem), phdr.p_filesz, f);
-        fsetpos(f, &curr_pos);
+        off_t curr_pos = lseek(fd, 0, SEEK_CUR);
+        lseek(fd, phdr.p_offset, SEEK_SET);
+        read(fd, (mem + phdr.p_vaddr), phdr.p_filesz);
+        lseek(fd, curr_pos, SEEK_SET);
     }
     //print_mem(log);
     (void) elf_end(e);
     (void) close(fd);
     fclose(log);
-    fclose(f);
     return EXIT_SUCCESS;
 }
 
