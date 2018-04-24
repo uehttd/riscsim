@@ -5,10 +5,14 @@
 #include "stdint.h"
 
 int main(){
-    int32_t a, b, c;
+    int32_t a, b, r;
     a = INT_MAX;
     b = INT_MAX;
-    c = a + b;
+    uint32_t c;
+    c = UINT_MAX;
 
-    return 0;
+    r = a + b;
+    r += c;
+
+    return r;
 }

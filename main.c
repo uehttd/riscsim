@@ -5,42 +5,50 @@
 #include "inst_decode.h"
 #include "load_elf.h"
 
+
 int32_t x[32]; //32 general-purpose intteger registers
-char mem[134217728]; //code memory model. TODO:this may require change accroding to the spec
+#define N_mem 134217728
+char mem[N_mem]; //code memory model. TODO:this may require change accroding to the spec
 int32_t pc; //program counter
 
+#define N_cache 128
+linear_block lb_cache[N_cache];
 
 int main(int argc, char** argv)
 {
-    FILE *fptr;
-    fptr = fopen("../log.txt", "rb+");
+    FILE *f_log;
+    f_log = fopen("log.txt", "w");
 
-    if(fptr == NULL) //if file does not exist, create it
-    {
-        fptr = fopen("../log.txt", "wb");
-    }
-
-    fprintf(fptr,"***************BEGIN***************\n");
-    fprintf(fptr," opcode         rd             pc\n");
+    fprintf(f_log,"  pc\t\t    inst\trd\n");
 
     for(int i = 0; i < 32; i++)
         x[i] = 0;
 
-    x[2] = 134217720; //init stack pointer
+    x[2] = N_mem - 8; //init stack pointer
 
     if (load_code(argc, argv) != EXIT_SUCCESS)
         return EXIT_FAILURE;
+
+    int cache_wr_num = 0;
     while (1)
     {
-        int op_status = exec_command(x, mem,  &pc, fptr);
-        if (op_status == EXEC_EXIT)
+        int i;
+        if ((i = find_linear_block(pc, lb_cache, N_cache)) == -1)
+        {
+            int n_inst = get_linear_block_size(mem, &pc);
+            clear_linear_block(&lb_cache[cache_wr_num]);
+            load_decode_linear_block(mem, pc, &lb_cache[cache_wr_num], n_inst, x);
+            i = cache_wr_num;
+            cache_wr_num = (cache_wr_num + 1) % 128;
+        }
+        int lb_status = exec_linear_block(mem,  &pc, &lb_cache[i], f_log);
+        if (lb_status == EXEC_EXIT)
             break;
     }
 
     printf("program returned: %d\n", x[10]);
 
-
-    fclose(fptr);
+    fclose(f_log);
 
     return 0;
 }

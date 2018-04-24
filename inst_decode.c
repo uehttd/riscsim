@@ -3,6 +3,9 @@
 //
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 #include "inst_decode.h"
 #include "rv32i_op.h"
@@ -19,7 +22,9 @@
                     | (slice(inst, 7, 1) << 11) | (ones_or_zeroes(slice(inst, 31, 1), 20) << 12))
 #define u_imm(inst) ((slice(inst, 12, 8) << 12) | (slice(inst, 20, 11) << 20) | (slice(inst, 31, 1) << 31))
 
-int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc)
+extern int32_t x[32];
+
+int exec_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t *rd, int32_t *pc)
 {
     switch (funct3) {
         case ADD:
@@ -63,7 +68,7 @@ int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, i
     }
 }
 
-int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t* pc)
+int exec_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t *pc)
 {
     switch (funct3)
     {
@@ -90,7 +95,7 @@ int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, i
     }
 }
 
-int decode_load_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc)
+int exec_load_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t *rd, int32_t *pc)
 {
     switch (funct3)
     {
@@ -114,7 +119,7 @@ int decode_load_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int3
     }
 }
 
-int decode_store_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc)
+int exec_store_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t val, int32_t *pc)
 {
     switch (funct3)
     {
@@ -132,139 +137,168 @@ int decode_store_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int
     }
 }
 
-int decode_B_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+void decode_B_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
 {
-    int funct3 = slice(inst, 12, 3);
-    int imm    = b_imm(inst);
-    int rs1    = slice(inst, 15, 5);
-    int rs2    = slice(inst, 20, 5);
-    return decode_branch_op(funct3, imm, x[rs1], x[rs2], pc);
+    i->funct3 = slice(inst, 12, 3);
+    i->op1    = (x + slice(inst, 15, 5));
+    i->op2    = (x + slice(inst, 20, 5));
+    i->imm_offs   = b_imm(inst);
 }
 
-int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+void decode_R_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
 {
-    int funct3 = slice(inst, 12, 3);
-    int funct7 = slice(inst, 25, 7);
-    int rd     = slice(inst,  7, 5);
-    int rs1    = slice(inst, 15, 5);
-    int rs2    = slice(inst, 20, 5);
+    i->funct3 = slice(inst, 12, 3);
+    i->funct7 = slice(inst, 25, 7);
 
-
-    if (funct3 == SUB && funct7 == 0x20)
-        return decode_arithm_op(ADD,    funct7, x[rs1], -x[rs2], (x + rd), pc);
-    else
-        return decode_arithm_op(funct3, funct7, x[rs1],  x[rs2], (x + rd), pc);
+    i->rd  = (x + slice(inst,  7, 5));
+    i->op1 = (x + slice(inst, 15, 5));
+    i->op2 = (x + slice(inst, 20, 5));
 }
 
-int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+void decode_I_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
 {
-    int opcode = slice(inst, 0, 7);
-    int funct3 = slice(inst, 12,  3);
-    int funct7 = slice(inst, 25, 7);
-    int imm    = i_imm(inst);
-    int rs1    = slice(inst, 15,  5);
-    int rd     = slice(inst,  7,  5);
+    i->funct3 = slice(inst, 12, 3);
+    i->funct7 = slice(inst, 25, 7);
+    i->imm_offs = i_imm(inst);
+    i->rd     = x + slice(inst, 7, 5);
+    i->op1    = x + slice(inst, 15, 5);
+}
 
-    switch (opcode)
+void decode_S_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
+{
+    i->funct3 = slice(inst, 12, 3);
+    i->imm_offs   = s_imm(inst);
+    i->op1    = x + slice(inst, 15, 5);
+    i->op2    = x + slice(inst, 20, 5);
+}
+
+void decode_J_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
+{
+    i->rd = x + slice(inst, 7, 5);
+    i->imm_offs = j_imm(inst);
+}
+
+void decode_U_type(int32_t inst, int32_t *x, char *mem, inst_t *i)
+{
+    i->rd     = x + slice(inst, 7, 5);
+    i->imm_offs    = u_imm(inst);
+}
+
+int get_linear_block_size(char* mem, int32_t* pc)
+{
+    int32_t pc0 = *pc;
+    int n = 0;
+    do
     {
-        case OP_IMM:
-            return decode_arithm_op(funct3, funct7, x[rs1], imm, (x + rd), pc);
-        case JALR:
-            if (funct3 == 0) {
-                jalr_op(imm, x[rs1], (x + rd), pc);
-                return EXEC_OK;
-            }
-            else
-                return EXEC_EXIT;
-        case LOAD:
-            return decode_load_op(funct3, imm, x[rs1], mem, (x + rd), pc);
-        default:
-            return EXEC_EXIT;
-    }
+        int32_t inst = *(int32_t*)(mem + pc0 + 4*n);
+        int32_t opcode = slice(inst, 0, 7);
+        n++;
+        if ((opcode == BRANCH) || (opcode == JALR) || (opcode == JAL))
+            break;
+    } while(1);
+    return n;
 }
 
-int decode_S_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
+int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, int32_t *x)
 {
-    int funct3 = slice(inst, 12, 3);
-    int imm    = s_imm(inst);
-    int rs1    = slice(inst, 15, 5);
-    int rs2    = slice(inst, 20, 5);
+    lb->inst = (inst_t*) calloc(n_inst, sizeof(inst_t));
+    lb->n_inst = n_inst;
+    lb->pc0 = pc0;
 
-    return decode_store_op(funct3, imm, x[rs1], mem, x[rs2], pc);
-}
-
-int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
-{
-    int rd = slice(inst, 7, 5);
-    int imm = j_imm(inst);
-
-    jal_op(imm, (x + rd), pc);
-
-    return EXEC_OK;
-}
-
-int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc)
-{
-    int opcode = slice(inst, 0, 7);
-    int rd     = slice(inst, 7, 5);
-    int imm    = u_imm(inst);
-    switch (opcode)
+    for(int i = 0; i < n_inst; i++)
     {
-        case LUI:
-            lui_op(imm, (x + rd), pc);
-            return EXEC_OK;
-        case AUIPC:
-            auipc_op(imm, (x + rd), pc);
-            return EXEC_OK;
-        default:
-            return EXEC_EXIT;
-    }
-}
-
-
-
-    int exec_command(int32_t* x, char* mem, int32_t* pc, FILE *fptr) {
-        int32_t inst = *(int32_t*)(mem + *pc);
-        int opcode = slice(inst, 0, 7);
-        int rd     = slice(inst, 7, 5);
-        int ret_status;
-
-
-        fprintf(fptr, " %d         ", opcode);
-
-        switch (opcode)
+        int32_t inst = *(int32_t*)(mem + pc0 + 4*i);
+        lb->inst[i].opcode = slice(inst, 0, 7);
+        switch (lb->inst[i].opcode)
         {
             case OP:
-                ret_status = decode_R_type(inst, x, mem, pc);
-                fprintf(fptr, "%d             %d\n", rd, *pc);
+                decode_R_type(inst, x, mem, &(lb->inst[i]));
                 break;
             case OP_IMM:
             case LOAD:
             case JALR:
-                ret_status = decode_I_type(inst, x, mem, pc);
-                fprintf(fptr, "%d             %d\n", rd, *pc);
+                decode_I_type(inst, x, mem, &(lb->inst[i]));
                 break;
             case LUI:
             case AUIPC:
-                ret_status = decode_U_type(inst, x, mem, pc);
-                fprintf(fptr, "%d             %d\n", rd, *pc);
+                decode_U_type(inst, x, mem, &(lb->inst[i]));
                 break;
             case BRANCH:
-                ret_status = decode_B_type(inst, x, mem, pc);
-                fprintf(fptr, "---             %d\n", *pc);
+                decode_B_type(inst, x, mem, &(lb->inst[i]));
                 break;
             case JAL:
-                ret_status = decode_J_type(inst, x, mem, pc);
-                fprintf(fptr, "%d             %d\n", rd, *pc);
+                decode_J_type(inst, x, mem, &(lb->inst[i]));
                 break;
             case STORE:
-                ret_status = decode_S_type(inst, x, mem, pc);
-                fprintf(fptr, "---             %d\n", *pc);
+                decode_S_type(inst, x, mem, &(lb->inst[i]));
                 break;
             default:
                 return EXEC_EXIT;
 
+        }
     }
-    x[0] = 0;
-    return ret_status;
+}
+
+#define ld_reg(addr) (*(int32_t*)(addr))
+#define ld_reg_sub(addr, funct3, funct7) (((funct3) == SUB) && ((funct7) == 0x20) ? -ld_reg(addr) : ld_reg(addr))
+
+int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
+{
+    for(int i = 0; i < lb->n_inst; i++)
+    {
+        switch(lb->inst[i].opcode)
+        {
+            case OP:
+                exec_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, ld_reg(lb->inst[i].op1), ld_reg_sub(lb->inst[i].op2, lb->inst[i].funct3, lb->inst[i].funct7), lb->inst[i].rd, pc);
+                break;
+            case OP_IMM:
+                exec_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, ld_reg(lb->inst[i].op1), lb->inst[i].imm_offs, lb->inst[i].rd, pc);
+                break;
+            case BRANCH:
+                exec_branch_op(lb->inst[i].funct3, lb->inst[i].imm_offs, ld_reg(lb->inst[i].op1), ld_reg(lb->inst[i].op2), pc);
+                break;
+            case LOAD:
+                exec_load_op(lb->inst[i].funct3, lb->inst[i].imm_offs, ld_reg(lb->inst[i].op1), mem, lb->inst[i].rd, pc);
+                break;
+            case STORE:
+                exec_store_op(lb->inst[i].funct3, lb->inst[i].imm_offs, ld_reg(lb->inst[i].op1), mem, ld_reg(lb->inst[i].op2), pc);
+                break;
+            case LUI:
+                lui_op(lb->inst[i].imm_offs, lb->inst[i].rd, pc);
+                break;
+            case AUIPC:
+                auipc_op(lb->inst[i].imm_offs, lb->inst[i].rd, pc);
+                break;
+            case JALR:
+                jalr_op(lb->inst[i].imm_offs, ld_reg(lb->inst[i].op1), lb->inst[i].rd, pc);
+                break;
+            case JAL:
+                jal_op(lb->inst[i].imm_offs, lb->inst[i].rd, pc);
+                break;
+            default:
+                return EXEC_EXIT;
+        }
+        int32_t inst = ld_reg(mem + *pc);
+        int32_t rd = slice(inst, 7, 5);
+        fprintf(f_log, "%8x\t%8x\t%2d\n", *pc, inst,
+               ((lb->inst[i].opcode != STORE) && (lb->inst[i].opcode != BRANCH)) ? rd : 0);
+        x[0] = 0;
+    }
+    return EXEC_OK;
+}
+
+int find_linear_block(int32_t pc0, linear_block* lb_cache, int n_block)
+{
+    for (int i = 0; i < n_block; i++)
+        if(lb_cache[i].pc0 == pc0)
+            return i;
+    return -1;
+}
+
+int clear_linear_block(linear_block* lb)
+{
+    if (!lb->inst)
+        free(lb->inst);
+    lb->pc0 = 0;
+    lb->n_inst = 0;
 }

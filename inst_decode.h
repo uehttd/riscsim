@@ -47,10 +47,6 @@ enum funct3_e {
     SW   = 0x2
 };
 
-enum funct7_e {
-    ZER  = 0x0
-};
-
 enum exec_command_status
 {
     EXEC_OK,
@@ -58,21 +54,40 @@ enum exec_command_status
 };
 
 typedef struct {
+    int32_t  opcode;
+    int32_t* rd;
+    int32_t  funct3;
+    int32_t  funct7;
+    int32_t* op1;
+    int32_t* op2;
+    int32_t  imm_offs;
+} inst_t;
+
+
+typedef struct {
     int n_inst;
-    int32_t
-} linear_command_block;
+    int32_t pc0;
+    inst_t* inst;
+} linear_block;
+
+int get_linear_block_size(char* mem, int32_t* pc);
+int clear_linear_block(linear_block* lb);
+int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, int32_t *x);
+int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log);
+
+int find_linear_block(int32_t pc0, linear_block* lb_cache, int n_block);
 
 int exec_command(int32_t* x, char* mem, int32_t* pc);
-int decode_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t* rd, int32_t* pc);
-int decode_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t* pc);
-int decode_load_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t* rd, int32_t* pc);
-int decode_store_op(int32_t funct3, int32_t offset, int32_t base, char* mem, int32_t val, int32_t* pc);
+int exec_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t *rd, int32_t *pc);
+int exec_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t *pc);
+int exec_load_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t *rd, int32_t *pc);
+int exec_store_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t val, int32_t *pc);
 
-int decode_B_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
-int decode_S_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
-int decode_J_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
-int decode_R_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
-int decode_I_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
-int decode_U_type(int32_t inst, int32_t* x, char* mem, int32_t* pc);
+void decode_B_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
+void decode_S_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
+void decode_J_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
+void decode_R_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
+void decode_I_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
+void decode_U_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
 
 #endif //RISCSIM_INST_DECODE_H
