@@ -246,6 +246,10 @@ int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
 {
     for(int i = 0; i < lb->n_inst; i++)
     {
+        int32_t inst = ld_reg(mem + *pc);
+        int32_t rd = slice(inst, 7, 5);
+        fprintf(f_log, "%8x\t%8x\t%2d\t", *pc, inst,
+                ((lb->inst[i].opcode != STORE) && (lb->inst[i].opcode != BRANCH)) ? rd : 0);
         switch(lb->inst[i].opcode)
         {
             case OP:
@@ -278,10 +282,6 @@ int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
             default:
                 return EXEC_EXIT;
         }
-        int32_t inst = ld_reg(mem + *pc);
-        int32_t rd = slice(inst, 7, 5);
-        fprintf(f_log, "%8x\t%8x\t%2d\n", *pc, inst,
-               ((lb->inst[i].opcode != STORE) && (lb->inst[i].opcode != BRANCH)) ? rd : 0);
         x[0] = 0;
     }
     return EXEC_OK;

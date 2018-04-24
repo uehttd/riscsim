@@ -14,12 +14,13 @@ int32_t pc; //program counter
 #define N_cache 128
 linear_block lb_cache[N_cache];
 
+FILE *f_log;
+
 int main(int argc, char** argv)
 {
-    FILE *f_log;
     f_log = fopen("log.txt", "w");
 
-    fprintf(f_log,"  pc\t\t    inst\trd\n");
+    fprintf(f_log,"  pc\t\t    inst\trd\tname\t*rd\n");
 
     for(int i = 0; i < 32; i++)
         x[i] = 0;

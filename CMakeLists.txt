@@ -58,5 +58,5 @@ int main() {
 
 mark_as_advanced(LIBELF_INCLUDE_DIRS LIBELF_LIBRARIES ELF_GETSHDRSTRNDX)
 
-add_executable(riscsim main.c rv32i_op.h inst_decode.h inst_decode.c rv32i_op.c load_elf.c load_elf.h)
+add_executable(riscsim main.c rv32i_op.h inst_decode.h inst_decode.c rv32i_op.c load_elf.c load_elf.h test2.c)
 target_link_libraries(riscsim ${LIBELF_LIBRARIES})
