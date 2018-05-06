@@ -24,6 +24,13 @@ inline void  add_op(int32_t op1, int32_t op2, int32_t offset, int32_t* rd, char*
     log(add);
 }
 
+inline void  sub_op(int32_t op1, int32_t op2, int32_t offset, int32_t* rd, char* mem, int32_t* pc)
+{
+    *rd = op1 - op2;
+    *pc += 4; //+4 bits since pc is pointer to int32_t
+    log(sub);
+}
+
 inline void slt_op(int32_t op1, int32_t op2, int32_t offset, int32_t* rd, char* mem, int32_t* pc)
 {
     *rd = (op1 < op2) ? 1 : 0;

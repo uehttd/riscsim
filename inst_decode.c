@@ -226,7 +226,10 @@ int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, i
         {
             case OP:
                 decode_R_type(inst, x, mem, &(lb->inst[i]));
-                assign_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
+                if ((lb->inst[i].funct3 == SUB) &&(lb->inst[i].funct7 == 0x20))
+                    lb->inst[i].F = &sub_op;
+                else
+                    assign_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
                 break;
             case OP_IMM:
                 decode_I_type(inst, x, mem, &(lb->inst[i]));

@@ -18,9 +18,9 @@ FILE *f_log;
 
 int main(int argc, char** argv)
 {
-    f_log = stdout;
+    f_log = fopen("log.txt", "w");
 
-    fprintf(f_log,"  pc\t\t    inst\trd\tname\t*rd\n");
+    //fprintf(f_log,"  pc\t\t    inst\trd\tname\t*rd\n");
 
     for(int i = 0; i < 32; i++)
         x[i] = 0;
