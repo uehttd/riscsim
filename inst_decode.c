@@ -23,6 +23,7 @@
 #define u_imm(inst) ((slice(inst, 12, 8) << 12) | (slice(inst, 20, 11) << 20) | (slice(inst, 31, 1) << 31))
 
 extern int32_t x[32];
+extern uint32_t inst_cnt;
 
 int exec_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t *rd, int32_t *pc)
 {
@@ -283,6 +284,7 @@ int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
                 return EXEC_EXIT;
         }
         x[0] = 0;
+        inst_cnt++;
     }
     return EXEC_OK;
 }

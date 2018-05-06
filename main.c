@@ -16,6 +16,8 @@ linear_block lb_cache[N_cache];
 
 FILE *f_log;
 
+uint32_t inst_cnt;
+
 int main(int argc, char** argv)
 {
     f_log = fopen("log.txt", "w");
@@ -31,6 +33,7 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
 
     int cache_wr_num = 0;
+    inst_cnt = 0;
     while (1)
     {
         int i;
@@ -48,6 +51,7 @@ int main(int argc, char** argv)
     }
 
     printf("program returned: %d\n", x[10]);
+    printf("instructions done: %u\n", inst_cnt);
 
     fclose(f_log);
 
