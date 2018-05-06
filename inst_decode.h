@@ -5,6 +5,8 @@
 #ifndef RISCSIM_INST_DECODE_H
 #define RISCSIM_INST_DECODE_H
 
+#include "rv32i_op.h"
+
 enum opcode_e {
     OP     = 0x33,
     OP_IMM = 0x13,
@@ -14,7 +16,8 @@ enum opcode_e {
     LOAD   = 0x03,
     STORE  = 0x23,
     LUI    = 0x37,
-    AUIPC  = 0x17
+    AUIPC  = 0x17,
+    ECALL  = 0x73
 };
 
 enum funct3_e {
@@ -61,6 +64,7 @@ typedef struct {
     int32_t* op1;
     int32_t* op2;
     int32_t  imm_offs;
+    func_op* F;
 } inst_t;
 
 
@@ -78,10 +82,10 @@ int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log);
 int find_linear_block(int32_t pc0, linear_block* lb_cache, int n_block);
 
 int exec_command(int32_t* x, char* mem, int32_t* pc);
-int exec_arithm_op(int32_t funct3, int32_t funct7, int32_t op1, int32_t op2, int32_t *rd, int32_t *pc);
-int exec_branch_op(int32_t funct3, int32_t offset, int32_t op1, int32_t op2, int32_t *pc);
-int exec_load_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t *rd, int32_t *pc);
-int exec_store_op(int32_t funct3, int32_t offset, int32_t base, char *mem, int32_t val, int32_t *pc);
+int assign_arithm_op(int32_t funct3, int32_t funct7, func_op** F_ptr);
+int assign_branch_op(int32_t funct3, func_op** F_ptr);
+int assign_load_op(int32_t funct3, func_op** F_ptr);
+int assign_store_op(int32_t funct3, func_op** F_ptr);
 
 void decode_B_type(int32_t inst, int32_t *x, char *mem, inst_t *i);
 void decode_S_type(int32_t inst, int32_t *x, char *mem, inst_t *i);

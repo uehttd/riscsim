@@ -5,6 +5,12 @@ int fib(int n)
   return (n == 1) ? 1 : (n == 0) ? 0 : fib(n-1) + fib(n-2);
 }
 
+void _start()
+{
+  main();
+  __asm("ecall");
+}
+
 int main()
 {
   int i, sum, sum1, sum2;
@@ -12,7 +18,7 @@ int main()
   int f;
   unsigned int op1 = 50, op2 = 101;
 
-  f = fib(25);
+  f = fib(30);
   sum1 = 0;
   for(i = 1; i < 37; i++)
     sum1 += i;

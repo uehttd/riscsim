@@ -10,7 +10,7 @@ int32_t x[32]; //32 general-purpose intteger registers
 #define N_mem 134217728
 char mem[N_mem]; //code memory model. TODO:this may require change accroding to the spec
 int32_t pc; //program counter
-
+uint32_t inst_cnt;
 #define N_cache 128
 linear_block lb_cache[N_cache];
 
@@ -18,7 +18,7 @@ FILE *f_log;
 
 int main(int argc, char** argv)
 {
-    f_log = fopen("log.txt", "w");
+    f_log = stdout;
 
     fprintf(f_log,"  pc\t\t    inst\trd\tname\t*rd\n");
 
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     }
 
     printf("program returned: %d\n", x[10]);
-
+    printf("instructions done: %u\n", inst_cnt);
     fclose(f_log);
 
     return 0;
