@@ -5,8 +5,6 @@
 #ifndef RISCSIM_INST_DECODE_H
 #define RISCSIM_INST_DECODE_H
 
-#include "rv32i_op.h"
-
 enum opcode_e {
     OP     = 0x33,
     OP_IMM = 0x13,
@@ -56,7 +54,11 @@ enum exec_command_status
     EXEC_EXIT
 };
 
-typedef struct {
+typedef struct inst_t inst_t;
+
+typedef void (func_op)(struct inst_t*, char*, int32_t*);
+
+struct inst_t {
     int32_t  opcode;
     int32_t* rd;
     int32_t  funct3;
@@ -65,7 +67,7 @@ typedef struct {
     int32_t* op2;
     int32_t  imm_offs;
     func_op* F;
-} inst_t;
+};
 
 
 typedef struct {

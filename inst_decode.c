@@ -283,9 +283,7 @@ int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
         //fprintf(f_log, "%8x\t%8x\t%2d\t", *pc, inst,
         //        ((lb->inst[i].opcode != STORE) && (lb->inst[i].opcode != BRANCH)) ? rd : 0);
         if(lb->inst[i].F)
-            lb->inst[i].F(  lb->inst[i].op1 ? *(lb->inst[i].op1) : lb->inst[i].imm_offs,
-                        lb->inst[i].op2 ? *(lb->inst[i].op2) : lb->inst[i].imm_offs,
-                        lb->inst[i].imm_offs, lb->inst[i].rd, mem, pc);
+            lb->inst[i].F(  &lb->inst[i], mem, pc);
         else
             return EXEC_EXIT;
         x[0] = 0;

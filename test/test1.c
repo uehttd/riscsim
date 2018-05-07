@@ -18,7 +18,7 @@ int main()
   int f;
   unsigned int op1 = 50, op2 = 101;
 
-  f = fib(30);
+  f = fib(37);
   sum1 = 0;
   for(i = 1; i < 37; i++)
     sum1 += i;
