@@ -67,6 +67,7 @@ struct inst_t {
     int32_t* op2;
     int32_t  imm_offs;
     func_op* F;
+    inst_t*  i_next;
 };
 
 

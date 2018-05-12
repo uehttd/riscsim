@@ -24,7 +24,7 @@
 
 extern int32_t x[32];
 
-int assign_arithm_op(int32_t funct3, int32_t funct7, func_op** F_ptr)
+int assign_reg_arithm_op(int32_t funct3, int32_t funct7, func_op** F_ptr)
 {
     switch (funct3) {
         case ADD:
@@ -67,6 +67,51 @@ int assign_arithm_op(int32_t funct3, int32_t funct7, func_op** F_ptr)
             return EXEC_EXIT;
     }
 }
+
+int assign_imm_arithm_op(int32_t funct3, int32_t funct7, func_op** F_ptr)
+{
+    switch (funct3) {
+        case ADD:
+            *F_ptr = &addi_op;
+            return EXEC_OK;
+        case SLT:
+            *F_ptr = &slti_op;
+            return EXEC_OK;
+        case SLTU:
+            *F_ptr = &sltui_op;
+            return EXEC_OK;
+        case XOR:
+            *F_ptr = &xori_op;
+            return EXEC_OK;
+        case SRL: //same as case SRA
+            switch (funct7)
+            {
+                case 0x00:
+                    *F_ptr = &srli_op;
+                    return EXEC_OK;
+                case 0x20:
+                    *F_ptr = &srai_op;
+                    return EXEC_OK;
+                default:
+                    return EXEC_EXIT;
+            }
+        case SLL:
+            if(funct7 == 0x00) {
+                *F_ptr = &slli_op;
+                return EXEC_OK;
+            } else
+                return EXEC_EXIT;
+        case AND:
+            *F_ptr = &andi_op;
+            return EXEC_OK;
+        case OR:
+            *F_ptr = &ori_op;
+            return EXEC_OK;
+        default:
+            return EXEC_EXIT;
+    }
+}
+
 
 int assign_branch_op(int32_t funct3, func_op** F_ptr)
 {
@@ -214,7 +259,7 @@ int get_linear_block_size(char* mem, int32_t* pc)
 
 int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, int32_t *x)
 {
-    lb->inst = (inst_t*) calloc(n_inst, sizeof(inst_t));
+    lb->inst = (inst_t*) calloc(n_inst + 1, sizeof(inst_t));
     lb->n_inst = n_inst;
     lb->pc0 = pc0;
 
@@ -229,11 +274,11 @@ int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, i
                 if ((lb->inst[i].funct3 == SUB) &&(lb->inst[i].funct7 == 0x20))
                     lb->inst[i].F = &sub_op;
                 else
-                    assign_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
+                    assign_reg_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
                 break;
             case OP_IMM:
                 decode_I_type(inst, x, mem, &(lb->inst[i]));
-                assign_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
+                assign_imm_arithm_op(lb->inst[i].funct3, lb->inst[i].funct7, &(lb->inst[i].F));
                 break;
             case LOAD:
                 decode_I_type(inst, x, mem, &(lb->inst[i]));
@@ -268,7 +313,9 @@ int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, i
                 return EXEC_EXIT;
 
         }
+        lb->inst[i].i_next = (lb->inst + i+1);
     }
+    lb->inst[n_inst].F = &exit_op;
 }
 
 #define ld_reg(addr) (*(int32_t*)(addr))
@@ -276,19 +323,15 @@ int load_decode_linear_block(char *mem, int pc0, linear_block *lb, int n_inst, i
 extern int inst_cnt;
 int exec_linear_block(char* mem, int32_t* pc, linear_block* lb, FILE* f_log)
 {
-    for(int i = 0; i < lb->n_inst; i++)
-    {
-        int32_t inst = ld_reg(mem + *pc);
-        int32_t rd = slice(inst, 7, 5);
+        //int32_t inst = ld_reg(mem + *pc);
+        //int32_t rd = slice(inst, 7, 5);
         //fprintf(f_log, "%8x\t%8x\t%2d\t", *pc, inst,
         //        ((lb->inst[i].opcode != STORE) && (lb->inst[i].opcode != BRANCH)) ? rd : 0);
-        if(lb->inst[i].F)
-            lb->inst[i].F(  &lb->inst[i], mem, pc);
-        else
-            return EXEC_EXIT;
-        x[0] = 0;
-        inst_cnt++;
-    }
+    if(!lb->inst[lb->n_inst].F)
+        return EXEC_EXIT;
+    lb->inst[0].F(  &lb->inst[0], mem, pc);
+    x[0] = 0;
+    //inst_cnt++;
     return EXEC_OK;
 }
 

@@ -11,7 +11,7 @@ int32_t x[32]; //32 general-purpose intteger registers
 char mem[N_mem]; //code memory model. TODO:this may require change accroding to the spec
 int32_t pc; //program counter
 uint32_t inst_cnt;
-#define N_cache 128
+#define N_cache 1024
 linear_block lb_cache[N_cache];
 
 FILE *f_log;
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
             clear_linear_block(&lb_cache[cache_wr_num]);
             load_decode_linear_block(mem, pc, &lb_cache[cache_wr_num], n_inst, x);
             i = cache_wr_num;
-            cache_wr_num = (cache_wr_num + 1) % 128;
+            cache_wr_num = (cache_wr_num + 1) % N_cache;
         }
         int lb_status = exec_linear_block(mem,  &pc, &lb_cache[i], f_log);
         if (lb_status == EXEC_EXIT)
